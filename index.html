@@ -2,36 +2,32 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bridge Mobile Adaptation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#101010" />
+  <title>Bridge Mobile Adaptation Launcher</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="stylesheet" href="./src/styles.css" />
 </head>
 <body>
-  <main class="app-shell">
-    <section class="hero">
-      <p class="eyebrow">Alpha 0.1</p>
-      <h1>Bridge Mobile Adaptation</h1>
-      <p class="subtitle">Prototipo mobile-first para hacer más cómoda la edición de addons Bedrock desde iPhone, Android y navegador móvil.</p>
-      <div class="actions">
-        <a class="button primary" href="./prototypes/mobile-json-toolbar/">Abrir barra JSON</a>
-        <a class="button" href="./docs/alpha-0.1-mobile-scope.md">Ver alcance Alpha 0.1</a>
+  <main class="launcher">
+    <section class="phone-card">
+      <p class="tag">Alpha 0.1</p>
+      <h1>Bridge Mobile</h1>
+      <p class="subtitle">Launcher rápido para probar una adaptación móvil de Bridge desde Safari o Chrome.</p>
+
+      <label for="projectName">Nombre del proyecto</label>
+      <input id="projectName" type="text" placeholder="Ej. Poppy Craft" autocomplete="off" />
+
+      <button id="startBtn">Crear proyecto rápido</button>
+
+      <div id="result" class="result hidden">
+        <h2>Proyecto creado</h2>
+        <p id="projectOutput"></p>
+        <a href="./prototypes/mobile-json-toolbar/">Abrir editor JSON móvil</a>
       </div>
     </section>
-
-    <section class="cards">
-      <article>
-        <h2>Modo móvil</h2>
-        <p>Layout pensado para pantallas verticales y horizontales.</p>
-      </article>
-      <article>
-        <h2>Botones grandes</h2>
-        <p>Controles táctiles cómodos para editar desde celular.</p>
-      </article>
-      <article>
-        <h2>Barra JSON</h2>
-        <p>Atajos para insertar llaves, comillas, comas y símbolos usados en archivos Bedrock.</p>
-      </article>
-    </section>
   </main>
+
+  <script src="./src/app.js"></script>
 </body>
 </html>
