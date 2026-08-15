@@ -1,16 +1,31 @@
-const startBtn = document.getElementById('startBtn');
-const input = document.getElementById('projectName');
-const result = document.getElementById('result');
-const output = document.getElementById('projectOutput');
-
-startBtn.addEventListener('click', () => {
-  const name = input.value.trim();
-
-  if (!name) {
-    alert('Escribe un nombre para el proyecto');
-    return;
-  }
-
-  output.textContent = `Proyecto móvil iniciado: ${name}`;
-  result.classList.remove('hidden');
-});
+(() => {
+  const STORAGE_KEY='bedrock-blocks-lab.alpha-0.1.project';
+  const $=id=>document.getElementById(id);
+  const els={projectPanel:$('projectPanel'),projectBtn:$('projectBtn'),projectName:$('projectName'),namespace:$('namespace'),entityId:$('entityId'),formatVersion:$('formatVersion'),basicTemplateBtn:$('basicTemplateBtn'),pursuerTemplateBtn:$('pursuerTemplateBtn'),saveProjectBtn:$('saveProjectBtn'),moreBtn:$('moreBtn'),moreDialog:$('moreDialog'),exportProjectBtn:$('exportProjectBtn'),importProjectBtn:$('importProjectBtn'),projectFileInput:$('projectFileInput'),resetBtn:$('resetBtn'),copyBtn:$('copyBtn'),downloadEntityBtn:$('downloadEntityBtn'),jsonPreview:$('jsonPreview'),validation:$('validation'),outputFilename:$('outputFilename'),saveState:$('saveState'),blockCount:$('blockCount')};
+  const theme=Blockly.Theme.defineTheme('bedrockMobile',{base:Blockly.Themes.Zelos,componentStyles:{workspaceBackgroundColour:'#11151d',toolboxBackgroundColour:'#171d28',toolboxForegroundColour:'#f4f7fb',flyoutBackgroundColour:'#202838',flyoutForegroundColour:'#f4f7fb',flyoutOpacity:1,scrollbarColour:'#59657a',insertionMarkerColour:'#7cf2c2',insertionMarkerOpacity:.45,cursorColour:'#7cf2c2'}});
+  const workspace=Blockly.inject('blocklyDiv',{toolbox:window.BedrockBlocks.toolbox,theme,renderer:'zelos',trashcan:true,grid:{spacing:24,length:3,colour:'#293244',snap:true},zoom:{controls:true,wheel:false,startScale:window.innerWidth<600?.82:.95,maxScale:1.5,minScale:.45,scaleSpeed:1.1,pinch:true},move:{scrollbars:true,drag:true,wheel:false}});
+  let saveTimer=0,latestOutput=null;
+  const metadata=()=>({projectName:els.projectName.value.trim()||'Proyecto Bedrock',namespace:window.BedrockGenerator.normalizePart(els.namespace.value,'custom'),entityId:window.BedrockGenerator.normalizePart(els.entityId.value,'entity'),formatVersion:els.formatVersion.value.trim()||'1.26.20'});
+  function syncRootFields(){const root=workspace.getTopBlocks(true).find(b=>b.type==='bedrock_entity_root');if(!root)return;const m=metadata();if(root.getFieldValue('NAMESPACE')!==m.namespace)root.setFieldValue(m.namespace,'NAMESPACE');if(root.getFieldValue('IDENTIFIER')!==m.entityId)root.setFieldValue(m.entityId,'IDENTIFIER');}
+  function renderOutput(){try{syncRootFields();latestOutput=window.BedrockGenerator.generate(workspace,metadata());els.jsonPreview.textContent=JSON.stringify(latestOutput.json,null,2);els.outputFilename.textContent=`${latestOutput.identifier}.json`;els.validation.className=latestOutput.warnings.length?'validation warning':'validation valid';els.validation.textContent=latestOutput.warnings.length?latestOutput.warnings.join(' · '):`✓ JSON generado para ${latestOutput.namespace}:${latestOutput.identifier}`;}catch(error){latestOutput=null;els.jsonPreview.textContent='// Conecta una entidad y sus componentes para generar JSON.';els.validation.className='validation error';els.validation.textContent=`⚠ ${error.message}`;}els.blockCount.textContent=`${workspace.getAllBlocks(false).length} bloques`;}
+  const projectSnapshot=()=>({schema:'bedrock-blocks-lab/project@1',appVersion:'0.1.0-alpha',metadata:metadata(),workspace:Blockly.serialization.workspaces.save(workspace)});
+  function saveLocal(show=false){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(projectSnapshot()));els.saveState.textContent=show?'✓ Guardado ahora':'Guardado local automático';if(show)setTimeout(()=>els.saveState.textContent='Guardado local automático',1400);}catch{els.saveState.textContent='⚠ No se pudo guardar localmente';}}
+  function scheduleSave(){clearTimeout(saveTimer);els.saveState.textContent='Guardando…';saveTimer=setTimeout(()=>saveLocal(false),450);}
+  function applyMetadata(m={}){if(m.projectName)els.projectName.value=m.projectName;if(m.namespace)els.namespace.value=m.namespace;if(m.entityId)els.entityId.value=m.entityId;if(m.formatVersion)els.formatVersion.value=m.formatVersion;}
+  function createBlock(type,fields={}){const block=workspace.newBlock(type);Object.entries(fields).forEach(([name,value])=>block.setFieldValue(String(value),name));block.initSvg();block.render();return block;}
+  function connectChain(root,blocks){let connection=root.getInput('COMPONENTS').connection;blocks.forEach(block=>{connection.connect(block.previousConnection);connection=block.nextConnection;});}
+  function loadTemplate(kind){workspace.clear();const m=metadata();const root=createBlock('bedrock_entity_root',{NAMESPACE:m.namespace,IDENTIFIER:m.entityId,SPAWNABLE:'TRUE',SUMMONABLE:'TRUE'});const blocks=[createBlock('bedrock_type_family',{FAMILIES:kind==='pursuer'?'mob,monster,poppy':'mob,custom'}),createBlock('bedrock_health',{VALUE:kind==='pursuer'?80:20,MAX:kind==='pursuer'?80:20}),createBlock('bedrock_physics'),createBlock('bedrock_collision_box',{WIDTH:kind==='pursuer'?.9:.8,HEIGHT:kind==='pursuer'?2.4:1.8}),createBlock('bedrock_movement',{VALUE:kind==='pursuer'?.32:.25}),createBlock('bedrock_movement_basic'),createBlock('bedrock_navigation_generic'),createBlock('bedrock_jump_static')];if(kind==='pursuer')blocks.push(createBlock('bedrock_nearest_player',{PRIORITY:2,DISTANCE:32,MUST_SEE:'TRUE'}),createBlock('bedrock_melee_attack',{PRIORITY:3,SPEED:1.25,TRACK:'TRUE'}),createBlock('bedrock_attack_damage',{DAMAGE:8}));else blocks.push(createBlock('bedrock_look_at_player'),createBlock('bedrock_random_stroll'));connectChain(root,blocks);root.moveBy(28,28);workspace.cleanUp();renderOutput();saveLocal(true);}
+  function downloadText(filename,content,mime='application/json'){const blob=new Blob([content],{type:`${mime};charset=utf-8`});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  function exportEntity(){renderOutput();if(!latestOutput)return;downloadText(`${latestOutput.identifier}.json`,`${JSON.stringify(latestOutput.json,null,2)}\n`);}
+  function exportProject(){const snapshot=projectSnapshot();const safe=metadata().projectName.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'project';downloadText(`${safe}.bedrockblocks.json`,`${JSON.stringify(snapshot,null,2)}\n`);}
+  async function importProject(file){const data=JSON.parse(await file.text());if(data.schema!=='bedrock-blocks-lab/project@1'||!data.workspace)throw new Error('Ese archivo no es un proyecto visual compatible con Alpha 0.1.');workspace.clear();applyMetadata(data.metadata);Blockly.serialization.workspaces.load(data.workspace,workspace);renderOutput();saveLocal(true);}
+  function restoreLocal(){try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return false;const saved=JSON.parse(raw);if(!saved.workspace)return false;applyMetadata(saved.metadata);Blockly.serialization.workspaces.load(saved.workspace,workspace);return true;}catch{return false;}}
+  workspace.addChangeListener(event=>{if(event.isUiEvent)return;renderOutput();scheduleSave();});
+  [els.projectName,els.namespace,els.entityId,els.formatVersion].forEach(input=>input.addEventListener('input',()=>{renderOutput();scheduleSave();}));
+  els.projectBtn.addEventListener('click',()=>els.projectPanel.classList.toggle('open'));els.basicTemplateBtn.addEventListener('click',()=>loadTemplate('basic'));els.pursuerTemplateBtn.addEventListener('click',()=>loadTemplate('pursuer'));els.saveProjectBtn.addEventListener('click',()=>saveLocal(true));els.moreBtn.addEventListener('click',()=>els.moreDialog.showModal());els.downloadEntityBtn.addEventListener('click',exportEntity);els.exportProjectBtn.addEventListener('click',exportProject);els.importProjectBtn.addEventListener('click',()=>els.projectFileInput.click());
+  els.copyBtn.addEventListener('click',async()=>{renderOutput();if(!latestOutput)return;const text=JSON.stringify(latestOutput.json,null,2);try{await navigator.clipboard.writeText(text);els.copyBtn.textContent='✓ Copiado';setTimeout(()=>els.copyBtn.textContent='Copiar',1200);}catch{const range=document.createRange();range.selectNodeContents(els.jsonPreview);const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);}});
+  els.projectFileInput.addEventListener('change',async()=>{const [file]=els.projectFileInput.files;if(!file)return;try{await importProject(file);els.moreDialog.close();}catch(error){alert(error.message);}finally{els.projectFileInput.value='';}});
+  els.resetBtn.addEventListener('click',()=>{if(!confirm('¿Limpiar el proyecto visual actual?'))return;localStorage.removeItem(STORAGE_KEY);workspace.clear();els.projectName.value='Nuevo proyecto';els.namespace.value='custom';els.entityId.value='entity';els.formatVersion.value='1.26.20';loadTemplate('basic');els.moreDialog.close();});
+  window.addEventListener('resize',()=>Blockly.svgResize(workspace));window.addEventListener('orientationchange',()=>setTimeout(()=>Blockly.svgResize(workspace),180));
+  if(!restoreLocal())loadTemplate('basic');renderOutput();Blockly.svgResize(workspace);
+})();
