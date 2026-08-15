@@ -1,33 +1,78 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#101010" />
-  <title>Bridge Mobile Adaptation Launcher</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#11151d" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Bedrock Blocks Lab — Alpha 0.1</title>
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="stylesheet" href="./src/styles.css" />
 </head>
 <body>
-  <main class="launcher">
-    <section class="phone-card">
-      <p class="tag">Alpha 0.1</p>
-      <h1>Bridge Mobile</h1>
-      <p class="subtitle">Launcher rápido para probar una adaptación móvil de Bridge desde Safari o Chrome.</p>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">B</div>
+        <div>
+          <strong>Bedrock Blocks Lab</strong>
+          <span>Alpha 0.1 · Visual Bedrock editor</span>
+        </div>
+      </div>
+      <button id="projectBtn" class="icon-button" type="button" aria-label="Proyecto" title="Proyecto">⚙️</button>
+    </header>
 
-      <label for="projectName">Nombre del proyecto</label>
-      <input id="projectName" type="text" placeholder="Ej. Poppy Craft" autocomplete="off" />
-
-      <button id="startBtn">Crear proyecto rápido</button>
-
-      <div id="result" class="result hidden">
-        <h2>Proyecto creado</h2>
-        <p id="projectOutput"></p>
-        <a href="./prototypes/mobile-json-toolbar/">Abrir editor JSON móvil</a>
+    <section id="projectPanel" class="project-panel" aria-label="Configuración del proyecto">
+      <div class="field-grid">
+        <label><span>Proyecto</span><input id="projectName" value="Poppy Craft Test" autocomplete="off" /></label>
+        <label><span>Namespace</span><input id="namespace" value="poppy" inputmode="text" autocomplete="off" /></label>
+        <label><span>Entidad</span><input id="entityId" value="test_creature" inputmode="text" autocomplete="off" /></label>
+        <label><span>format_version</span><input id="formatVersion" value="1.26.20" inputmode="decimal" autocomplete="off" /></label>
       </div>
     </section>
-  </main>
 
+    <nav class="actionbar" aria-label="Acciones del proyecto">
+      <button id="basicTemplateBtn" class="action-button" type="button">🧩 Básica</button>
+      <button id="pursuerTemplateBtn" class="action-button" type="button">👾 Perseguidor</button>
+      <button id="saveProjectBtn" class="action-button" type="button">💾 Guardar</button>
+      <button id="moreBtn" class="action-button" type="button">••• Más</button>
+    </nav>
+
+    <main class="workspace-area"><div id="blocklyDiv" aria-label="Editor visual Blockly"></div></main>
+
+    <section class="output-panel" aria-label="Salida generada">
+      <div class="output-header">
+        <div><span class="eyebrow">SALIDA BEDROCK</span><strong id="outputFilename">test_creature.json</strong></div>
+        <div class="output-actions">
+          <button id="copyBtn" class="small-button" type="button">Copiar</button>
+          <button id="downloadEntityBtn" class="small-button primary" type="button">Descargar JSON</button>
+        </div>
+      </div>
+      <div id="validation" class="validation" role="status">Listo.</div>
+      <pre id="jsonPreview" tabindex="0" aria-label="Vista previa JSON"></pre>
+    </section>
+
+    <footer class="statusbar"><span id="saveState">Guardado local automático</span><span id="blockCount">0 bloques</span></footer>
+  </div>
+
+  <dialog id="moreDialog">
+    <form method="dialog" class="dialog-card">
+      <div class="dialog-title-row">
+        <div><span class="eyebrow">PROYECTO</span><h2>Herramientas</h2></div>
+        <button class="icon-button" value="cancel" aria-label="Cerrar">✕</button>
+      </div>
+      <button id="exportProjectBtn" class="dialog-action" type="button">📦 Exportar proyecto visual</button>
+      <button id="importProjectBtn" class="dialog-action" type="button">📥 Importar proyecto visual</button>
+      <button id="resetBtn" class="dialog-action danger" type="button">🗑️ Nuevo proyecto / limpiar</button>
+      <p class="dialog-note">El proyecto visual guarda el workspace Blockly y tus metadatos. “Descargar JSON” genera el archivo de entidad para el Behavior Pack.</p>
+    </form>
+  </dialog>
+  <input id="projectFileInput" type="file" accept="application/json,.json,.bedrockblocks.json" hidden />
+
+  <script src="https://cdn.jsdelivr.net/npm/blockly@13.2.0/blockly.min.js"></script>
+  <script src="./src/bedrock-blocks.js"></script>
+  <script src="./src/bedrock-generator.js"></script>
   <script src="./src/app.js"></script>
 </body>
 </html>

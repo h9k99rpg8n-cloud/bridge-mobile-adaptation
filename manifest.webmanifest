@@ -1,10 +1,11 @@
 {
-  "name": "Bridge Mobile Adaptation",
-  "short_name": "BridgeMobile",
+  "name": "Bedrock Blocks Lab",
+  "short_name": "BedrockBlocks",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#101010",
-  "theme_color": "#101010",
-  "description": "Adaptación móvil para edición de addons Bedrock.",
+  "background_color": "#0c1016",
+  "theme_color": "#11151d",
+  "description": "Editor visual móvil con Google Blockly para crear archivos de Minecraft Bedrock.",
   "icons": []
 }
